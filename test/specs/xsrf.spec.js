@@ -1,4 +1,4 @@
-var axios = require('../../index');
+var cookies = require('../../lib/helpers/cookies');
 
 describe('xsrf', function () {
   beforeEach(function () {
@@ -11,64 +11,70 @@ describe('xsrf', function () {
   });
 
   it('should not set xsrf header if cookie is null', function (done) {
-    var request;
+    axios('/foo');
 
-    axios({
-      url: '/foo'
-    });
-
-    setTimeout(function () {
-      request = jasmine.Ajax.requests.mostRecent();
-
+    getAjaxRequest().then(function (request) {
       expect(request.requestHeaders[axios.defaults.xsrfHeaderName]).toEqual(undefined);
       done();
-    }, 0);
+    });
   });
 
   it('should set xsrf header if cookie is set', function (done) {
-    var request;
     document.cookie = axios.defaults.xsrfCookieName + '=12345';
 
-    axios({
-      url: '/foo'
-    });
+    axios('/foo');
 
-    setTimeout(function () {
-      request = jasmine.Ajax.requests.mostRecent();
-
+    getAjaxRequest().then(function (request) {
       expect(request.requestHeaders[axios.defaults.xsrfHeaderName]).toEqual('12345');
       done();
-    }, 0);
+    });
+  });
+
+  it('should not set xsrf header if xsrfCookieName is null', function (done) {
+    document.cookie = axios.defaults.xsrfCookieName + '=12345';
+
+    axios('/foo', {
+      xsrfCookieName: null
+    });
+
+    getAjaxRequest().then(function (request) {
+      expect(request.requestHeaders[axios.defaults.xsrfHeaderName]).toEqual(undefined);
+      done();
+    });
+  });
+
+  it('should not read cookies at all if xsrfCookieName is null', function (done) {
+    spyOn(cookies, "read");
+
+    axios('/foo', {
+      xsrfCookieName: null
+    });
+
+    getAjaxRequest().then(function (request) {
+      expect(cookies.read).not.toHaveBeenCalled();
+      done();
+    });
   });
 
   it('should not set xsrf header for cross origin', function (done) {
-    var request;
     document.cookie = axios.defaults.xsrfCookieName + '=12345';
 
-    axios({
-      url: 'http://example.com/'
-    });
+    axios('http://example.com/');
 
-    setTimeout(function () {
-      request = jasmine.Ajax.requests.mostRecent();
-
+    getAjaxRequest().then(function (request) {
       expect(request.requestHeaders[axios.defaults.xsrfHeaderName]).toEqual(undefined);
       done();
     });
   });
 
   it('should set xsrf header for cross origin when using withCredentials', function (done) {
-    var request;
     document.cookie = axios.defaults.xsrfCookieName + '=12345';
 
-    axios({
-      url: 'http://example.com/',
+    axios('http://example.com/', {
       withCredentials: true
     });
 
-    setTimeout(function () {
-      request = jasmine.Ajax.requests.mostRecent();
-
+    getAjaxRequest().then(function (request) {
       expect(request.requestHeaders[axios.defaults.xsrfHeaderName]).toEqual('12345');
       done();
     });

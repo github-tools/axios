@@ -1,5 +1,3 @@
-var axios = require('../../index');
-
 describe('options', function () {
   beforeEach(function () {
     jasmine.Ajax.install();
@@ -10,110 +8,105 @@ describe('options', function () {
   });
 
   it('should default method to get', function (done) {
-    var request;
+    axios('/foo');
 
-    axios({
-      url: '/foo'
-    });
-
-    setTimeout(function () {
-      request = jasmine.Ajax.requests.mostRecent();
-
+    getAjaxRequest().then(function (request) {
       expect(request.method).toBe('GET');
       done();
-    }, 0);
+    });
   });
 
   it('should accept headers', function (done) {
-    var request;
-
-    axios({
-      url: '/foo',
+    axios('/foo', {
       headers: {
         'X-Requested-With': 'XMLHttpRequest'
       }
     });
 
-    setTimeout(function () {
-      request = jasmine.Ajax.requests.mostRecent();
-
+    getAjaxRequest().then(function (request) {
       expect(request.requestHeaders['X-Requested-With']).toEqual('XMLHttpRequest');
       done();
-    }, 0);
+    });
   });
 
   it('should accept params', function (done) {
-    var request;
-
-    axios({
-      url: '/foo',
+    axios('/foo', {
       params: {
         foo: 123,
         bar: 456
       }
     });
 
-    setTimeout(function () {
-      request = jasmine.Ajax.requests.mostRecent();
-
+    getAjaxRequest().then(function (request) {
       expect(request.url).toBe('/foo?foo=123&bar=456');
       done();
-    }, 0);
+    });
   });
 
   it('should allow overriding default headers', function (done) {
-    var request;
-
-    axios({
-      url: '/foo',
+    axios('/foo', {
       headers: {
         'Accept': 'foo/bar'
       }
     });
 
-    setTimeout(function () {
-      request = jasmine.Ajax.requests.mostRecent();
-
+    getAjaxRequest().then(function (request) {
       expect(request.requestHeaders['Accept']).toEqual('foo/bar');
       done();
-    }, 0);
+    });
   });
 
   it('should accept base URL', function (done) {
-    var request;
-
-    const instance = axios.create({
+    var instance = axios.create({
       baseURL: 'http://test.com/'
     });
 
-    instance.request({
-      url: '/foo'
-    });
+    instance.get('/foo');
 
-    setTimeout(function () {
-      request = jasmine.Ajax.requests.mostRecent();
-
+    getAjaxRequest().then(function (request) {
       expect(request.url).toBe('http://test.com/foo');
       done();
-    }, 0);
+    });
   });
 
   it('should ignore base URL if request URL is absolute', function (done) {
-    var request;
-
-    const instance = axios.create({
+    var instance = axios.create({
       baseURL: 'http://someurl.com/'
     });
 
-    instance.request({
-      url: 'http://someotherurl.com/'
-    });
+    instance.get('http://someotherurl.com/');
 
-    setTimeout(function () {
-      request = jasmine.Ajax.requests.mostRecent();
-
+    getAjaxRequest().then(function (request) {
       expect(request.url).toBe('http://someotherurl.com/');
       done();
-    }, 0);
+    });
+  });
+
+  it('should change only the baseURL of the specified instance', function() {
+    var instance1 = axios.create();
+    var instance2 = axios.create();
+
+    instance1.defaults.baseURL = 'http://instance1.example.com/';
+
+    expect(instance2.defaults.baseURL).not.toBe('http://instance1.example.com/');
+  });
+
+  it('should change only the headers of the specified instance', function() {
+    var instance1 = axios.create();
+    var instance2 = axios.create();
+
+    instance1.defaults.headers.common.Authorization = 'faketoken';
+    instance2.defaults.headers.common.Authorization = 'differentfaketoken';
+
+    instance1.defaults.headers.common['Content-Type'] = 'application/xml';
+    instance2.defaults.headers.common['Content-Type'] = 'application/x-www-form-urlencoded';
+
+    expect(axios.defaults.headers.common.Authorization).toBe(undefined);
+    expect(instance1.defaults.headers.common.Authorization).toBe('faketoken');
+    expect(instance2.defaults.headers.common.Authorization).toBe('differentfaketoken');
+
+    expect(axios.defaults.headers.common['Content-Type']).toBe(undefined);
+    expect(instance1.defaults.headers.common['Content-Type']).toBe('application/xml');
+    expect(instance2.defaults.headers.common['Content-Type']).toBe('application/x-www-form-urlencoded');
   });
 });
