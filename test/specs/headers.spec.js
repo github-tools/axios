@@ -1,5 +1,3 @@
-var axios = require('../../index');
-
 function testHeaderValue(headers, key, val) {
   var found = false;
 
@@ -32,84 +30,86 @@ describe('headers', function () {
   it('should default common headers', function (done) {
     var headers = axios.defaults.headers.common;
 
-    axios({
-      url: '/foo'
-    });
+    axios('/foo');
 
-    setTimeout(function () {
-      var request = jasmine.Ajax.requests.mostRecent();
-
+    getAjaxRequest().then(function (request) {
       for (var key in headers) {
         if (headers.hasOwnProperty(key)) {
           expect(request.requestHeaders[key]).toEqual(headers[key]);
         }
       }
       done();
-    }, 0);
+    });
   });
 
   it('should add extra headers for post', function (done) {
     var headers = axios.defaults.headers.common;
 
-    axios({
-      method: 'post',
-      url: '/foo',
-      data: 'fizz=buzz'
-    });
+    axios.post('/foo', 'fizz=buzz');
 
-    setTimeout(function () {
-      var request = jasmine.Ajax.requests.mostRecent();
-
+    getAjaxRequest().then(function (request) {
       for (var key in headers) {
         if (headers.hasOwnProperty(key)) {
           expect(request.requestHeaders[key]).toEqual(headers[key]);
         }
       }
       done();
-    }, 0);
+    });
   });
 
-  it('should use application/json when posting an object', function (done) {
-    axios({
-      url: '/foo/bar',
-      method: 'post',
-      data: {
-        firstName: 'foo',
-        lastName: 'bar'
+  it('should reset headers by null or explicit undefined', function (done) {
+    axios.create({
+      headers: {
+        common: {
+          'x-header-a': 'a',
+          'x-header-b': 'b',
+          'x-header-c': 'c'
+        }
+      }
+    }).post('/foo', {fizz: 'buzz'}, {
+      headers: {
+        'Content-Type': null,
+        'x-header-a': null,
+        'x-header-b': undefined
       }
     });
 
-    setTimeout(function () {
-      var request = jasmine.Ajax.requests.mostRecent();
+    getAjaxRequest().then(function (request) {
+      testHeaderValue(request.requestHeaders, 'Content-Type', null);
+      testHeaderValue(request.requestHeaders, 'x-header-a', null);
+      testHeaderValue(request.requestHeaders, 'x-header-b', undefined);
+      testHeaderValue(request.requestHeaders, 'x-header-c', 'c');
+      done();
+    });
+  });
+
+  it('should use application/json when posting an object', function (done) {
+    axios.post('/foo/bar', {
+      firstName: 'foo',
+      lastName: 'bar'
+    });
+
+    getAjaxRequest().then(function (request) {
       testHeaderValue(request.requestHeaders, 'Content-Type', 'application/json;charset=utf-8');
       done();
-    }, 0);
+    });
   });
 
   it('should remove content-type if data is empty', function (done) {
-    axios({
-      url: '/foo',
-      method: 'post'
-    });
+    axios.post('/foo');
 
-    setTimeout(function () {
-      var request = jasmine.Ajax.requests.mostRecent();
+    getAjaxRequest().then(function (request) {
       testHeaderValue(request.requestHeaders, 'Content-Type', undefined);
       done();
-    }, 0);
+    });
   });
 
   it('should preserve content-type if data is false', function (done) {
-    axios({
-      url: '/foo',
-      method: 'post',
-      data: false
-    });
+    axios.post('/foo', false);
 
-    setTimeout(function () {
-      var request = jasmine.Ajax.requests.mostRecent();
+    getAjaxRequest().then(function (request) {
       testHeaderValue(request.requestHeaders, 'Content-Type', 'application/x-www-form-urlencoded');
       done();
-    }, 0);
+    });
   });
 });

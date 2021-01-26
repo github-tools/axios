@@ -1,9 +1,9 @@
-var axios = require('../../index');
-
 describe('static api', function () {
   it('should have request method helpers', function () {
+    expect(typeof axios.request).toEqual('function');
     expect(typeof axios.get).toEqual('function');
     expect(typeof axios.head).toEqual('function');
+    expect(typeof axios.options).toEqual('function');
     expect(typeof axios.delete).toEqual('function');
     expect(typeof axios.post).toEqual('function');
     expect(typeof axios.put).toEqual('function');
@@ -35,6 +35,16 @@ describe('static api', function () {
   it('should have factory method', function () {
     expect(typeof axios.create).toEqual('function');
   });
+
+  it('should have Cancel, CancelToken, and isCancel properties', function () {
+    expect(typeof axios.Cancel).toEqual('function');
+    expect(typeof axios.CancelToken).toEqual('function');
+    expect(typeof axios.isCancel).toEqual('function');
+  });
+
+  it('should have isAxiosError properties', function () {
+    expect(typeof axios.isAxiosError).toEqual('function');
+  });
 });
 
 describe('instance api', function () {
@@ -43,6 +53,7 @@ describe('instance api', function () {
   it('should have request methods', function () {
     expect(typeof instance.request).toEqual('function');
     expect(typeof instance.get).toEqual('function');
+    expect(typeof instance.options).toEqual('function');
     expect(typeof instance.head).toEqual('function');
     expect(typeof instance.delete).toEqual('function');
     expect(typeof instance.post).toEqual('function');

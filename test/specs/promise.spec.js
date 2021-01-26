@@ -1,6 +1,3 @@
-require('es6-promise').polyfill();
-var axios = require('../../index');
-
 describe('promise', function () {
   beforeEach(function () {
     jasmine.Ajax.install();
@@ -11,17 +8,13 @@ describe('promise', function () {
   });
 
   it('should provide succinct object to then', function (done) {
-    var request, response;
+    var response;
 
-    axios({
-      url: '/foo'
-    }).then(function (r) {
+    axios('/foo').then(function (r) {
       response = r;
     });
 
-    setTimeout(function () {
-      request = jasmine.Ajax.requests.mostRecent();
-
+    getAjaxRequest().then(function (request) {
       request.respondWith({
         status: 200,
         responseText: '{"hello":"world"}'
@@ -34,8 +27,8 @@ describe('promise', function () {
         expect(response.headers['content-type']).toEqual('application/json');
         expect(response.config.url).toEqual('/foo');
         done();
-      }, 0);
-    }, 0);
+      }, 100);
+    });
   });
 
   it('should support all', function (done) {
@@ -48,7 +41,7 @@ describe('promise', function () {
     setTimeout(function () {
       expect(fulfilled).toEqual(true);
       done();
-    }, 0);
+    }, 100);
   });
 
   it('should support spread', function (done) {
@@ -72,6 +65,6 @@ describe('promise', function () {
       expect(sum).toEqual(123 + 456);
       expect(result).toEqual('hello world');
       done();
-    }, 0);
+    }, 100);
   });
 });

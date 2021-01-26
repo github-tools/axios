@@ -1,4 +1,5 @@
 var buildURL = require('../../../lib/helpers/buildURL');
+var URLSearchParams = require('url-search-params');
 
 describe('helpers::buildURL', function () {
   it('should support null params', function () {
@@ -35,8 +36,8 @@ describe('helpers::buildURL', function () {
 
   it('should support special char params', function () {
     expect(buildURL('/foo', {
-      foo: '@:$, '
-    })).toEqual('/foo?foo=@:$,+');
+      foo: ':$, '
+    })).toEqual('/foo?foo=:$,+');
   });
 
   it('should support existing params', function () {
@@ -53,6 +54,12 @@ describe('helpers::buildURL', function () {
     })).toEqual('/foo?query=bar&start=0&length=5');
   });
 
+  it('should correct discard url hash mark', function () {
+    expect(buildURL('/foo?foo=bar#hash', {
+      query: 'baz'
+    })).toEqual('/foo?foo=bar&query=baz');
+  });
+
   it('should use serializer if provided', function () {
     serializer = sinon.stub();
     params = {foo: 'bar'};
@@ -60,7 +67,9 @@ describe('helpers::buildURL', function () {
     expect(buildURL('/foo', params, serializer)).toEqual('/foo?foo=bar');
     expect(serializer.calledOnce).toBe(true);
     expect(serializer.calledWith(params)).toBe(true);
-  })
+  });
+
+  it('should support URLSearchParams', function () {
+    expect(buildURL('/foo', new URLSearchParams('bar=baz'))).toEqual('/foo?bar=baz');
+  });
 });
-
-

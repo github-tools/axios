@@ -2,7 +2,7 @@
 <html>
   <head>
     <title>axios - file upload example</title>
-    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="//maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"/>
   </head>
   <body class="container">
     <h1>file upload</h1>
@@ -26,18 +26,23 @@
           data.append('foo', 'bar');
           data.append('file', document.getElementById('file').files[0]);
 
-          axios.put('/upload/server', data)
+          var config = {
+            onUploadProgress: function(progressEvent) {
+              var percentCompleted = Math.round( (progressEvent.loaded * 100) / progressEvent.total );
+            }
+          };
+
+          axios.put('/upload/server', data, config)
             .then(function (res) {
               output.className = 'container';
               output.innerHTML = res.data;
             })
-            .catch(function (res) {
+            .catch(function (err) {
               output.className = 'container text-danger';
-              output.innerHTML = res.data;
+              output.innerHTML = err.message;
             });
         };
       })();
     </script>
   </body>
 </html>
-

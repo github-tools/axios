@@ -4,9 +4,8 @@ describe('adapter', function () {
   it('should support custom adapter', function (done) {
     var called = false;
 
-    axios({
-      url: '/foo',
-      adapter: function (resolve, reject, config) {
+    axios('/foo', {
+      adapter: function (config) {
         called = true;
       }
     });
@@ -14,7 +13,7 @@ describe('adapter', function () {
     setTimeout(function () {
       expect(called).toBe(true);
       done();
-    }, 0);
+    }, 100);
   });
 });
 
